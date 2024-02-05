@@ -1,8 +1,11 @@
 package film
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -52,6 +55,27 @@ func GetFilm(url string) (*Film, error) {
 	extractFilmInfo(doc, film)
 
 	return film, nil
+}
+
+func RetrieveFilms(target string) (*Films, error) {
+	file, err := os.Open(target)
+	if err != nil {
+		return nil, fmt.Errorf("open file failed: %w", err)
+	}
+	defer file.Close()
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("read file failed: %w", err)
+	}
+
+	var films Films
+	err = json.Unmarshal(bytes, &films)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal json failed: %w", err)
+	}
+
+	return &films, nil
 }
 
 func extractFilmInfo(n *html.Node, curFilm *Film) {
